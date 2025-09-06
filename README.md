@@ -41,12 +41,7 @@ An interactive vocabulary game built on Reddit's developer platform where player
    ```bash
    npm install
    ```
-3. Authenticate with Reddit:
-   ```bash
-   npm run login
-   ```
-4. Set environment variables for Redis (e.g., `REDIS_URL`) to connect to your Redis instance.
-5. Start the development environment:
+3. Start the development server:
    ```bash
    npm run dev
    ```
