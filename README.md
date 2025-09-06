@@ -93,3 +93,15 @@ For additional setup guidance, see the [official Devvit documentation](https://d
 ## Cursor Integration
 
 This template comes with a pre-configured cursor environment. To get started, [download cursor](https://www.cursor.com/downloads) and enable the `devvit-mcp` when prompted.
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests. A dedicated [CONTRIBUTING.md](CONTRIBUTING.md) with more detailed guidelines will be added in the future.
+
+## Code of Conduct
+
+A formal code of conduct has not yet been established. In the meantime, please be respectful and help maintain a welcoming environment for all contributors.
+
+## License
+
+This project is licensed under the [BSD-3-Clause License](LICENSE). See the [LICENSE](LICENSE) file for the full text.
