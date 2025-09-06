@@ -45,7 +45,8 @@ An interactive vocabulary game built on Reddit's developer platform where player
    ```bash
    npm run login
    ```
-4. Set environment variables for Redis (e.g., `REDIS_URL`) to connect to your Redis instance.
+   This uses the Devvit CLI to open your browser so you can sign in with your Reddit developer account.
+4. Configure Redis connection environment variables (e.g., `REDIS_URL` or `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD`) so the app can reach your Redis instance.
 5. Start the development environment:
    ```bash
    npm run dev
