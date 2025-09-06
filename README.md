@@ -26,9 +26,30 @@ An interactive vocabulary game built on Reddit's developer platform where player
 
 > Make sure you have Node 22 downloaded on your machine before running!
 
-1. Run `npm create devvit@latest --template=react`
-2. Go through the installation wizard. You will need to create a Reddit account and connect it to Reddit developers
-3. Copy the command on the success page into your terminal
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/lexicon-clash.git
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development environment:
+   ```bash
+   npm run dev
+   ```
+
+To build the project for production, run:
+
+```bash
+npm run build
+```
+
+To deploy the project, run:
+
+```bash
+npm run deploy
+```
 
 ## 🎮 How to Play
 
