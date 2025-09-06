@@ -78,7 +78,7 @@ For additional setup guidance, see the [official Devvit documentation](https://d
 ## 🏆 Scoring System
 
 - **Normal Rounds**: The card with more word/synonym matches wins
-- **Wildcard Rounds**: When both cards have 0 matches, winner is determined by upvotes, then comment count
+- **Wildcard Rounds**: When both cards have the same number of matches, winner is determined by upvotes, then comment count
 - **Statistics**: Track wins, losses, ties, current streak, longest streak, and unique words learned
 
 ## Commands
