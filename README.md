@@ -24,7 +24,14 @@ An interactive vocabulary game built on Reddit's developer platform where player
 
 ## Getting Started
 
-> Make sure you have Node 22 downloaded on your machine before running!
+### Prerequisites
+
+- **Node 22**
+- **Devvit CLI**
+- **Reddit developer account**
+- **Redis**
+
+### Setup
 
 1. Clone the repository:
    ```bash
@@ -34,7 +41,12 @@ An interactive vocabulary game built on Reddit's developer platform where player
    ```bash
    npm install
    ```
-3. Start the development environment:
+3. Authenticate with Reddit:
+   ```bash
+   npm run login
+   ```
+4. Set environment variables for Redis (e.g., `REDIS_URL`) to connect to your Redis instance.
+5. Start the development environment:
    ```bash
    npm run dev
    ```
@@ -50,6 +62,8 @@ To deploy the project, run:
 ```bash
 npm run deploy
 ```
+
+For additional setup guidance, see the [official Devvit documentation](https://developers.reddit.com/docs/devvit).
 
 ## 🎮 How to Play
 
