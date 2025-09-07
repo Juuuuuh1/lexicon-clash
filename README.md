@@ -1,6 +1,15 @@
 # Lexicon Clash: Battle of Reddit Words
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-43853d?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Devvit](https://img.shields.io/badge/Devvit-FF4500?logo=reddit&logoColor=white)](https://developers.reddit.com/)
+
 An interactive vocabulary game built on Reddit's developer platform where players test their SAT word knowledge by analyzing real Reddit posts.
+
+## 🌟 Inspiration
+
+Lexicon Clash grew out of a simple childhood game I played with my dad. We’d flip open magazines at random, count the number of people on the page, and celebrate whoever landed the larger crowd. That moment of lighthearted competition stuck with me. As a high school senior preparing for the SAT, I wanted to recreate that spark but give it an educational twist. By blending test prep with the unpredictability of Reddit posts, Lexicon Clash transforms rote vocabulary drills into a playful, social challenge.
 
 ## 🎯 Game Features
 
