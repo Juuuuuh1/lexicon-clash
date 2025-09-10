@@ -1,201 +1,204 @@
-import { useState, useEffect, useCallback } from 'react';
-import { GameState } from '../../shared/types/game';
-import { InitResponse, NewRoundResponse, RevealCardsResponse } from '../../shared/types/api';
+import { useState, useCallback, useEffect } from 'react';
+import type { GameState, GameRound } from '../../shared/types/game';
+import type { StartRoundResponse } from '../../shared/types/api';
+
+const initialGameState: GameState = {
+  currentRound: null,
+  score: 0,
+  streak: 0,
+  roundsPlayed: 0,
+  totalCorrect: 0,
+  totalWrong: 0,
+  isLoading: false,
+};
+
+// Load game state from localStorage
+const loadGameState = (): GameState => {
+  try {
+    const saved = localStorage.getItem('lexicon-clash-game-state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure we have all required properties
+      return {
+        ...initialGameState,
+        ...parsed,
+        currentRound: null, // Don't persist rounds
+        isLoading: false,
+      };
+    }
+  } catch (error) {
+    console.error('Error loading game state:', error);
+    // Clear corrupted data
+    localStorage.removeItem('lexicon-clash-game-state');
+  }
+  return initialGameState;
+};
+
+// Save game state to localStorage
+const saveGameState = (state: GameState): void => {
+  try {
+    const toSave = {
+      score: state.score,
+      streak: state.streak,
+      roundsPlayed: state.roundsPlayed,
+      totalCorrect: state.totalCorrect,
+      totalWrong: state.totalWrong,
+    };
+    localStorage.setItem('lexicon-clash-game-state', JSON.stringify(toSave));
+  } catch (error) {
+    console.error('Error saving game state:', error);
+  }
+};
 
 export function useGame() {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [username, setUsername] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<GameState>(loadGameState);
 
-  // Initialize game
+  // Save state changes to localStorage
   useEffect(() => {
-    const initGame = async () => {
-      try {
-        setLoading(true);
-        // Check URL parameters for reset flag (useful for development)
-        const urlParams = new URLSearchParams(window.location.search);
-        const shouldReset = urlParams.get('reset') === 'true';
-        const response = await fetch(`/api/init${shouldReset ? '?reset=true' : ''}`);
+    saveGameState(gameState);
+  }, [gameState.score, gameState.streak, gameState.roundsPlayed, gameState.totalCorrect, gameState.totalWrong]);
 
-        if (!response.ok) {
-          throw new Error(`Failed to initialize game: ${response.status}`);
-        }
+  const startNewRound = useCallback(async (): Promise<void> => {
+    setGameState(prev => ({ ...prev, isLoading: true }));
 
-        const data: InitResponse = await response.json();
-        setGameState(data.gameState);
-        setUsername(data.username);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to initialize game:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize game');
-      } finally {
-        setLoading(false);
+    try {
+      const response = await fetch('/api/start-round', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    };
 
-    void initGame();
+      const data: StartRoundResponse = await response.json();
+
+      if (!data.success || !data.round) {
+        throw new Error(data.error || 'Failed to start new round');
+      }
+
+      setGameState(prev => ({
+        ...prev,
+        currentRound: data.round!,
+        roundsPlayed: prev.roundsPlayed + 1,
+        isLoading: false,
+      }));
+    } catch (error) {
+      console.error('Failed to start new round:', error);
+      setGameState(prev => ({ ...prev, isLoading: false }));
+      throw error;
+    }
   }, []);
 
-  // Start new round
-  const startNewRound = useCallback(async () => {
-    if (!gameState) {
-      console.error('No game state available');
-      return;
-    }
+  const makeGuess = useCallback(async (cardIndex: 0 | 1): Promise<void> => {
+    if (!gameState.currentRound || gameState.isLoading) return;
 
-    console.log('Starting new round...');
-    try {
-      setLoading(true);
-      setError(null);
+    const round = gameState.currentRound;
+    const selectedCard = round.cards[cardIndex];
+    const otherCard = round.cards[cardIndex === 0 ? 1 : 0];
 
-      const response = await fetch('/api/new-round', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    // Reveal both cards
+    const updatedCards = round.cards.map((card, index) => ({
+      ...card,
+      isRevealed: true,
+      isWinner: false // Will be set below
+    }));
 
-      console.log('New round response status:', response.status);
+    let playerWon: boolean;
+    let winner: 'player' | 'computer' | 'tie';
 
-      if (!response.ok) {
-        throw new Error(`Failed to start new round: ${response.status}`);
+    if (round.isWildcard) {
+      // WILDCARD ROUND: Compare upvotes of the two posts
+      const selectedUpvotes = selectedCard.post.upvotes || 0;
+      const otherUpvotes = otherCard.post.upvotes || 0;
+
+      if (selectedUpvotes === otherUpvotes) {
+        playerWon = false; // Tie counts as loss for simplicity
+        winner = 'tie';
+      } else {
+        playerWon = selectedUpvotes > otherUpvotes;
+        winner = playerWon ? 'player' : 'computer';
       }
 
-      const data: NewRoundResponse = await response.json();
-      console.log('New round data received:', data);
-
-      setGameState((prev) =>
-        prev
-          ? {
-              ...prev,
-              currentRound: data.round,
-              isLoading: false,
-              error: null,
-            }
-          : null
-      );
-
-      console.log('Game state updated with new round');
-    } catch (err) {
-      console.error('Failed to start new round:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start new round');
-    } finally {
-      setLoading(false);
-    }
-  }, [gameState]);
-
-  // Reveal cards
-  const revealCards = useCallback(
-    async (choice: 0 | 1) => {
-      if (!gameState?.currentRound) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch('/api/reveal-cards', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ choice }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to reveal cards: ${response.status}`);
-        }
-
-        const data: RevealCardsResponse = await response.json();
-
-        setGameState((prev) => {
-          if (!prev) return null;
-
-          return {
-            ...prev,
-            currentRound: data.round,
-            stats: data.stats, // Use server-provided stats instead of calculating locally
-            isLoading: false,
-            error: null,
-          };
-        });
-      } catch (err) {
-        console.error('Failed to reveal cards:', err);
-        setError(err instanceof Error ? err.message : 'Failed to reveal cards');
-      } finally {
-        setLoading(false);
+      // Mark winner card
+      if (winner === 'player') {
+        updatedCards[cardIndex].isWinner = true;
+      } else if (winner === 'computer') {
+        updatedCards[cardIndex === 0 ? 1 : 0].isWinner = true;
       }
-    },
-    [gameState]
-  );
+    } else {
+      // NORMAL ROUND: Compare word occurrence counts of the two posts
+      const selectedOccurrences = selectedCard.post.occurrenceCount || 0;
+      const otherOccurrences = otherCard.post.occurrenceCount || 0;
 
-  // Save game state to localStorage (for leaderboard persistence)
-  useEffect(() => {
-    if (gameState && !loading) {
-      localStorage.setItem('lexicon-clash-stats', JSON.stringify(gameState.stats));
-      localStorage.setItem('lexicon-clash-journal', JSON.stringify(gameState.journal));
-    }
-  }, [gameState, loading]);
-
-  // Load saved stats from localStorage on init
-  useEffect(() => {
-    if (gameState && gameState.stats.roundsPlayed === 0) {
-      const savedStats = localStorage.getItem('lexicon-clash-stats');
-      const savedJournal = localStorage.getItem('lexicon-clash-journal');
-
-      if (savedStats || savedJournal) {
-        setGameState((prev) => {
-          if (!prev) return null;
-
-          return {
-            ...prev,
-            stats: savedStats ? JSON.parse(savedStats) : prev.stats,
-            journal: savedJournal
-              ? JSON.parse(savedJournal).map((entry: { date: string; [key: string]: unknown }) => ({
-                  ...entry,
-                  date: new Date(entry.date),
-                }))
-              : prev.journal,
-          };
-        });
-      }
-    }
-  }, [gameState]);
-
-  // Reset game
-  const resetGame = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/reset-game', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reset game: ${response.status}`);
+      if (selectedOccurrences === otherOccurrences) {
+        playerWon = false; // Tie counts as loss for simplicity
+        winner = 'tie';
+      } else {
+        playerWon = selectedOccurrences > otherOccurrences;
+        winner = playerWon ? 'player' : 'computer';
       }
 
-      const data = await response.json();
-      setGameState(data.gameState);
-    } catch (err) {
-      console.error('Failed to reset game:', err);
-      setError(err instanceof Error ? err.message : 'Failed to reset game');
-    } finally {
-      setLoading(false);
+      // Mark winner card
+      if (winner === 'player') {
+        updatedCards[cardIndex].isWinner = true;
+      } else if (winner === 'computer') {
+        updatedCards[cardIndex === 0 ? 1 : 0].isWinner = true;
+      }
     }
+
+    // Calculate points - Clear and predictable system
+    let pointsEarned = 0;
+    if (playerWon) {
+      // Base points for winning
+      pointsEarned = 10;
+
+      // Streak bonus: +5 points per streak level (max +25 at 5+ streak)
+      const streakBonus = Math.min(gameState.streak * 5, 25);
+      pointsEarned += streakBonus;
+
+      // Wildcard game bonus: Double all points
+      if (round.isWildcard) {
+        pointsEarned *= 2;
+      }
+    } else if (winner === 'computer') {
+      // Deduct points for losing (but don't go below 0 total score)
+      pointsEarned = -5;
+
+      // Wildcard loss penalty: Double deduction
+      if (round.isWildcard) {
+        pointsEarned *= 2; // -10 points
+      }
+    }
+    // Ties earn 0 points (no deduction)
+
+    const updatedRound: GameRound = {
+      ...round,
+      cards: updatedCards,
+      winner,
+      pointsEarned,
+    };
+
+    setGameState(prev => ({
+      ...prev,
+      currentRound: updatedRound,
+      score: Math.max(0, prev.score + pointsEarned), // Don't allow negative scores
+      streak: playerWon ? prev.streak + 1 : 0,
+      totalCorrect: prev.totalCorrect + (playerWon ? 1 : 0),
+      totalWrong: prev.totalWrong + (playerWon ? 0 : 1),
+    }));
+  }, [gameState.currentRound, gameState.isLoading, gameState.streak]);
+
+  const resetGame = useCallback((): void => {
+    setGameState(initialGameState);
+    localStorage.removeItem('lexicon-clash-game-state');
   }, []);
 
   return {
     gameState,
-    username,
-    loading,
-    error,
     startNewRound,
-    revealCards,
+    makeGuess,
     resetGame,
   };
 }

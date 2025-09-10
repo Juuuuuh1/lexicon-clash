@@ -14,49 +14,54 @@ Lexicon Clash grew out of a simple childhood game I played with my dad. We’d f
 ## 🎯 Game Features
 
 - **SAT Vocabulary Learning**: Learn challenging SAT words with definitions and synonyms
-- **Reddit Content Analysis**: Analyze real Reddit posts to find word patterns
-- **Card Battle System**: Choose between two mystery Reddit posts to find the one with more word matches
-- **Anti-0-0 System**: Guaranteed hit logic ensures engaging gameplay with fallback wildcard rules
-- **Statistics Tracking**: Track wins, losses, streaks, and vocabulary progress
-- **Word Journal**: Keep a record of learned words with example sentences
+- **Real Reddit Posts**: Play with curated real Reddit posts containing SAT vocabulary
+- **Card Battle System**: Choose between two Reddit post cards to find the one with more word occurrences
+- **Wildcard Games**: When word counts tie, winner is determined by Reddit upvotes
+- **Statistics Tracking**: Track wins, losses, streaks, and scoring progress
+- **Point System**: Earn points with streak bonuses and wildcard multipliers
 - **Animated UI**: Smooth card flips, confetti celebrations, and responsive design
 
 ## 🛠️ Tech Stack
 
 - [Devvit](https://developers.reddit.com/): Reddit's developer platform for immersive experiences
 - [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/): Modern UI with type safety
-- [Framer Motion](https://www.framer.com/motion/): Smooth animations and card flip effects
 - [Tailwind CSS](https://tailwindcss.com/): Utility-first styling
-- [Express](https://expressjs.com/): Backend API server
-- [Redis](https://redis.io/): Game state persistence
+- [Vite](https://vitejs.dev/): Fast build tool and development server
 - [Canvas Confetti](https://www.npmjs.com/package/canvas-confetti): Celebration effects
+- **Reddit API**: Real-time post data fetching for upvotes and comments
 
 ## Getting Started
 
 ### Prerequisites
 
-- **Node 22**
+- **Node.js 22+**
 - **Devvit CLI**
 - **Reddit developer account**
-- **Redis**
 
 ### Setup
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/<your-username>/lexicon-clash.git
+   git clone https://github.com/your-username/lexicon-clash.git
    ```
+
 2. Install dependencies:
+
    ```bash
    npm install
    ```
+
 3. Authenticate with Reddit:
+
    ```bash
    npm run login
    ```
+
    This uses the Devvit CLI to open your browser so you can sign in with your Reddit developer account.
-4. Configure Redis connection environment variables (e.g., `REDIS_URL` or `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD`) so the app can reach your Redis instance.
-5. Start the development environment:
+
+4. Start the development environment:
+
    ```bash
    npm run dev
    ```
@@ -73,22 +78,27 @@ To deploy the project, run:
 npm run deploy
 ```
 
-For additional setup guidance, see the [official Devvit documentation](https://developers.reddit.com/docs/devvit).
+For additional setup guidance, see the [official Devvit documentation](https://developers.reddit.com/docs).
 
 ## 🎮 How to Play
 
-1. **Start a Round**: Click "Start Playing" to begin a new vocabulary challenge
-2. **Learn the Word**: Study the SAT word, its definition, and synonyms
-3. **Choose Your Card**: Select which of the two face-down Reddit post cards you think contains more instances of the target word and its synonyms
-4. **Reveal Results**: Watch the cards flip to reveal the Reddit posts and see the match counts
-5. **Build Your Streak**: Win consecutive rounds to build your longest streak
-6. **Track Progress**: View your statistics and word journal to see your vocabulary growth
+1. **Start a Game**: Click "Start Playing" to begin a new vocabulary challenge
+2. **Learn the Challenge Word**: Study the SAT word displayed at the top with its definition and synonyms
+3. **Choose Your Card**: Select which of the two Reddit post cards you think contains more occurrences of the challenge word
+4. **Reveal Results**: Watch the cards flip to reveal the real Reddit posts and their word occurrence counts
+5. **Wildcard Games**: When both posts have the same word count, the winner is determined by Reddit upvotes
+6. **Build Your Streak**: Win consecutive games to earn streak bonuses and higher scores
+7. **Track Progress**: View your statistics to see your wins, losses, current streak, and total score
 
 ## 🏆 Scoring System
 
-- **Normal Rounds**: The card with more word/synonym matches wins
-- **Wildcard Rounds**: When both cards have the same number of matches, winner is determined by upvotes, then comment count
-- **Statistics**: Track wins, losses, ties, current streak, longest streak, and unique words learned
+- **Base Points**: 10 points for each win
+- **Streak Bonus**: Up to +25 bonus points based on current streak (5 points per streak, max 5 streak)
+- **Wildcard Multiplier**: 2x points for wildcard game wins
+- **Loss Penalty**: -5 points for normal losses, -10 points for wildcard losses
+- **Normal Games**: Winner determined by word occurrence count
+- **Wildcard Games**: When word counts are equal, winner determined by Reddit upvotes
+- **Statistics**: Track total score, wins, losses, current streak, and games played
 
 ## Commands
 
@@ -101,11 +111,11 @@ For additional setup guidance, see the [official Devvit documentation](https://d
 
 ## Cursor Integration
 
-This template comes with a pre-configured cursor environment. To get started, [download cursor](https://www.cursor.com/downloads) and enable the `devvit-mcp` when prompted.
+This project comes with a pre-configured Cursor environment. To get started, [download Cursor](https://www.cursor.com/) and open the project directory.
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or submit pull requests. A dedicated [CONTRIBUTING.md](CONTRIBUTING.md) with more detailed guidelines will be added in the future.
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## Code of Conduct
 

@@ -10,9 +10,10 @@ type GameCardProps = {
   className?: string;
   cardIndex: 0 | 1;
   challengeWord: string;
+  isSelected?: boolean;
 };
 
-export function GameCard({ card, isRevealed, onClick, disabled, className = '', cardIndex, challengeWord }: GameCardProps) {
+export function GameCard({ card, isRevealed, onClick, disabled, className = '', cardIndex, challengeWord, isSelected = false }: GameCardProps) {
   const [showUrl, setShowUrl] = useState<string | null>(null);
 
   // Use the actual challenge word for search
@@ -141,6 +142,13 @@ export function GameCard({ card, isRevealed, onClick, disabled, className = '', 
             </span>
           </div>
 
+          {/* Selected Indicator */}
+          {isSelected && (
+            <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+              ✓ SELECTED
+            </div>
+          )}
+
           {/* Main Content */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-white">
@@ -186,79 +194,46 @@ export function GameCard({ card, isRevealed, onClick, disabled, className = '', 
             {card.post.title}
           </h3>
 
-          {/* Summary */}
-          <p className="text-xs text-gray-600 mb-3 line-clamp-4 flex-grow">{card.post.summary}</p>
 
-          {/* Stats */}
-          <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
-            <span>↑ {card.post.upvotes.toLocaleString()}</span>
-            <span>💬 {card.post.commentCount}</span>
+          {/* Reddit-style Upvote Display */}
+          <div className="flex justify-center items-center mb-3">
+            <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 gap-2">
+              <div className="text-orange-500 text-lg font-bold">▲</div>
+              <div className="text-sm font-semibold text-gray-700">
+                {card.post.upvotes.toLocaleString()}
+              </div>
+              <div className="text-orange-500 text-lg font-bold opacity-30">▼</div>
+            </div>
           </div>
 
           {/* Match Count */}
           <div
-            className={`${cardIndex === 0 ? 'bg-orange-100' : 'bg-blue-100'} rounded-lg p-3 text-center border-2 ${cardIndex === 0 ? 'border-orange-200' : 'border-blue-200'} relative group cursor-help`}
-            title={card.post.matchCount > 0 ? `Hover to see matched words for "${challengeWord}"` : 'No matches found'}
+            className={`${cardIndex === 0 ? 'bg-orange-100' : 'bg-blue-100'} rounded-lg p-3 text-center border-2 ${cardIndex === 0 ? 'border-orange-200' : 'border-blue-200'}`}
           >
-            <div className={`text-2xl font-bold ${theme.accentColor} animate-pulse`}>{card.post.matchCount}</div>
+            <div className={`text-2xl font-bold ${theme.accentColor} animate-pulse`}>{card.post.matchCount ?? 0}</div>
             <div className="text-xs text-gray-600 font-medium">
-              {card.post.matchCount === 1 ? 'MATCH' : 'MATCHES'}
+              {(card.post.matchCount ?? 0) === 1 ? 'MATCH' : 'MATCHES'}
             </div>
-            {card.post.matchCount > 0 && (
-              <div className="text-xs mt-1">
-                {card.post.matchCount >= 5 ? '🏆 Legendary!' :
-                 card.post.matchCount === 4 ? '💯 Perfect!' :
-                 card.post.matchCount === 3 ? '🔥 Hot!' :
-                 card.post.matchCount === 2 ? '⭐ Great!' : '✨ Good'}
-              </div>
-            )}
-
-            {/* Hover Tooltip for Match Examples */}
-            {card.post.matchCount > 0 && card.post.matchExamples.length > 0 && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg max-w-xs">
-                  <div className="font-semibold mb-2 text-yellow-300">Exact matches for "{challengeWord}":</div>
-                  {card.post.matchExamples.slice(0, 3).map((example, idx) => {
-                    // Convert **word** to highlighted spans
-                    const parts = example.split(/\*\*(.*?)\*\*/g);
-                    return (
-                      <div key={idx} className="mb-1 last:mb-0">
-                        <span className="text-gray-300">•</span>{' '}
-                        {parts.map((part, partIdx) =>
-                          partIdx % 2 === 1 ? (
-                            <span key={partIdx} className="bg-yellow-300 text-gray-900 px-1 rounded font-semibold">
-                              {part}
-                            </span>
-                          ) : (
-                            <span key={partIdx}>{part}</span>
-                          )
-                        )}
-                      </div>
-                    );
-                  })}
-                  {card.post.matchCount > card.post.matchExamples.length && (
-                    <div className="text-gray-400 text-xs mt-1 italic">
-                      +{card.post.matchCount - card.post.matchExamples.length} more exact matches...
-                    </div>
-                  )}
-                  {/* Tooltip Arrow */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Example Sentences */}
-          {card.post.matchExamples.length > 0 && (
-            <div className="mt-2 text-xs">
-              <div className="font-medium text-gray-700 mb-1">Examples:</div>
-              {card.post.matchExamples.slice(0, 2).map((example, idx) => (
-                <div key={idx} className="text-gray-600 italic truncate">
-                  "{example}"
-                </div>
-              ))}
+          {(card.post.matchCount ?? 0) > 0 && (
+            <div className="text-xs mt-1">
+              {(card.post.matchCount ?? 0) >= 5 ? '🏆 Legendary!' :
+               (card.post.matchCount ?? 0) === 4 ? '💯 Perfect!' :
+               (card.post.matchCount ?? 0) === 3 ? '🔥 Hot!' :
+               (card.post.matchCount ?? 0) === 2 ? '⭐ Great!' : '✨ Good'}
             </div>
           )}
+
+          </div>
+
+          {/* Selected Indicator at Bottom */}
+          {isSelected && (
+            <div className="mt-3 text-center">
+              <div className="bg-yellow-500 text-white px-3 py-2 rounded-full text-xs font-bold shadow-lg inline-block">
+                ✓ YOUR PICK
+              </div>
+            </div>
+          )}
+
         </div>
       </motion.div>
 

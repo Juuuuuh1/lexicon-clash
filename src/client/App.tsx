@@ -1,259 +1,312 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { navigateTo } from '@devvit/web/client';
 import { useGame } from './hooks/useGame';
 import { GameBoard } from './components/GameBoard';
 import { StatsDisplay } from './components/StatsDisplay';
 
 export const App = () => {
-  const { gameState, username, loading, error, startNewRound, revealCards, resetGame } = useGame();
+  const [gameStarted, setGameStarted] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const { gameState, startNewRound, makeGuess, resetGame } = useGame();
 
-  if (loading && !gameState) {
+  const handleStartGame = async () => {
+    setGameStarted(true);
+    try {
+      await startNewRound();
+    } catch (error) {
+      console.error('Failed to start game:', error);
+      alert('Failed to start game. Please try again.');
+      setGameStarted(false);
+    }
+  };
+
+  const handleBackToStart = () => {
+    setGameStarted(false);
+    setShowStats(false);
+  };
+
+  const handleResetGame = () => {
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    resetGame();
+    setShowStats(false);
+    setShowResetConfirm(false);
+  };
+
+  const cancelReset = () => {
+    setShowResetConfirm(false);
+  };
+
+  const handleCardClick = async (cardIndex: 0 | 1) => {
+    try {
+      await makeGuess(cardIndex);
+    } catch (error) {
+      console.error('Failed to make guess:', error);
+    }
+  };
+
+  const handleNewRound = async () => {
+    try {
+      await startNewRound();
+    } catch (error) {
+      console.error('Failed to start new round:', error);
+    }
+  };
+
+  if (!gameStarted) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">Loading Lexicon Clash...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center relative overflow-hidden pt-8 md:pt-12">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 text-6xl animate-pulse">⚔️</div>
+          <div className="absolute top-20 right-20 text-4xl animate-bounce">🏆</div>
+          <div className="absolute bottom-20 left-20 text-5xl animate-pulse">💯</div>
+          <div className="absolute bottom-10 right-10 text-3xl animate-bounce">✨</div>
+          <div className="absolute top-1/2 left-1/4 text-2xl animate-ping">🎯</div>
+          <div className="absolute top-1/3 right-1/3 text-3xl animate-pulse">🔥</div>
+          <div className="absolute bottom-1/3 left-1/2 text-4xl animate-bounce">🚀</div>
+        </div>
+
+        <div className="text-center z-10 max-w-2xl mx-auto px-6">
+          {/* Main Title */}
+          <div className="mb-8">
+            <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-4 animate-pulse">
+              ⚔️ LEXICON CLASH
+            </h1>
+            <p className="text-2xl text-gray-700 font-medium mb-2">Battle of Reddit Words</p>
+            <p className="text-lg text-gray-600 max-w-lg mx-auto leading-relaxed">
+              🎯 Guess which vocabulary word appears more times in Reddit posts!
+              <br />
+              📚 Learn SAT words while having fun!
+            </p>
+          </div>
+
+          {/* Game Features */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+              <div className="text-3xl mb-2">🎮</div>
+              <div className="text-sm font-semibold text-gray-700">Interactive</div>
+              <div className="text-xs text-gray-500">Gameplay</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+              <div className="text-3xl mb-2">📊</div>
+              <div className="text-sm font-semibold text-gray-700">Real Data</div>
+              <div className="text-xs text-gray-500">From Reddit</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+              <div className="text-3xl mb-2">🏆</div>
+              <div className="text-sm font-semibold text-gray-700">Score</div>
+              <div className="text-xs text-gray-500">& Streaks</div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+              <div className="text-3xl mb-2">📚</div>
+              <div className="text-sm font-semibold text-gray-700">Learn</div>
+              <div className="text-xs text-gray-500">Vocabulary</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-4">
+            <button
+              onClick={handleStartGame}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-12 rounded-xl text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            >
+              🚀 START THE CLASH
+            </button>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className="bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+              >
+                📊 {showStats ? 'Hide' : 'Show'} Stats
+              </button>
+
+              {(gameState.score > 0 || gameState.roundsPlayed > 0) && (
+                <button
+                  onClick={handleResetGame}
+                  className="bg-red-500/80 backdrop-blur-sm hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  🔄 Reset Stats
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Display */}
+          {showStats && (
+            <div className="mt-8 animate-in slide-in-from-bottom duration-300">
+              <StatsDisplay
+                score={gameState.score}
+                streak={gameState.streak}
+                roundsPlayed={gameState.roundsPlayed}
+                totalCorrect={gameState.totalCorrect}
+                totalWrong={gameState.totalWrong}
+                className="max-w-md mx-auto"
+              />
+            </div>
+          )}
+
+          {/* How to Play */}
+          <div className="mt-8 text-sm text-gray-600">
+            <p className="mb-2">🎯 <strong>How to Play:</strong></p>
+            <p>1. Two vocabulary words appear • 2. Guess which appears more times in posts • 3. Build your streak!</p>
+            <p className="mt-1 text-xs">💫 <strong>Wildcard games:</strong> Compare upvotes instead for bonus points!</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (gameState.isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-6xl mb-4">😞</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-spin">⚔️</div>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Preparing Battle...</h2>
+          <div className="animate-pulse text-lg text-gray-600">Loading vocabulary words from Reddit</div>
+          <div className="mt-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!gameState.currentRound) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😔</div>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">No Round Available</h2>
+          <p className="text-gray-600 mb-6">Something went wrong loading the game round.</p>
           <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            onClick={handleBackToStart}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg"
           >
-            Try Again
+            🏠 Back to Home
           </button>
         </div>
       </div>
     );
   }
 
-  if (!gameState) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-gray-600">Initializing game...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-3 py-2 sm:px-4 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="text-xl sm:text-3xl">⚔️</div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Lexicon Clash</h1>
-                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Battle of Reddit Words</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-6 md:py-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header with Stats and Controls */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">⚔️ LEXICON CLASH</h1>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              {username && <span className="text-xs sm:text-sm text-gray-600 hidden md:block">Hey {username}! 👋</span>}
-
-              <button
-                onClick={() => setShowStats(!showStats)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
-              >
-                📊 <span className="hidden sm:inline">Stats</span>
-              </button>
-
-              <button
-                onClick={resetGame}
-                className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
-                title="Reset game and start fresh"
-              >
-                🔄 <span className="hidden sm:inline">Reset</span>
-              </button>
-            </div>
+          {/* Quick Stats */}
+          <div className="flex justify-center gap-4 md:gap-6 text-xs md:text-sm text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg py-2 px-4 md:px-6 inline-flex mb-4">
+            <span className="flex items-center gap-1">
+              <span className="text-blue-600">🏆</span>
+              <span className="hidden sm:inline">Score:</span> <strong>{gameState.score}</strong>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-orange-600">🔥</span>
+              <span className="hidden sm:inline">Streak:</span> <strong>{gameState.streak}</strong>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-purple-600">🎯</span>
+              <span className="hidden sm:inline">Games:</span> <strong>{gameState.roundsPlayed}</strong>
+            </span>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="py-4 sm:py-8">
-        {showStats && (
-          <div className="max-w-6xl mx-auto px-4 mb-8">
-            <StatsDisplay stats={gameState.stats} />
-          </div>
-        )}
-
-        {gameState.currentRound ? (
-          <GameBoard
-            round={gameState.currentRound}
-            onCardClick={revealCards}
-            onNewRound={startNewRound}
-            loading={loading}
-          />
-        ) : (
-          <div className="max-w-4xl mx-auto px-4">
-            {/* Hero Section */}
-            <div className="text-center mb-8">
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-                className="text-8xl mb-4"
-              >
-                ⚔️
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent mb-4"
-              >
-                LEXICON CLASH
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-                className="text-xl text-gray-700 mb-6 max-w-2xl mx-auto"
-              >
-                Battle your way through <span className="font-bold text-purple-600">challenging vocabulary</span> by dueling with real Reddit posts!
-              </motion.p>
-
-              {/* Call to Action Button - Moved Up */}
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
-                onClick={startNewRound}
-                disabled={loading}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 transform hover:scale-110 disabled:transform-none mb-12"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Preparing Battle...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-3">
-                    🚀 START THE CLASH
-                    <span className="animate-pulse">⚡</span>
-                  </span>
-                )}
-              </motion.button>
-            </div>
-
-            {/* Game Features - Enhanced */}
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-                className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-blue-200"
-              >
-                <div className="text-4xl mb-3 animate-bounce">📚</div>
-                <div className="font-bold text-blue-900 text-lg mb-2">Master Vocabulary</div>
-                <div className="text-blue-700">Learn challenging words through interactive gameplay</div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0, duration: 0.5 }}
-                className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-green-200"
-              >
-                <div className="text-4xl mb-3 animate-pulse">🔍</div>
-                <div className="font-bold text-green-900 text-lg mb-2">Duel Real Posts</div>
-                <div className="text-green-700">Challenge authentic Reddit content head-to-head</div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2, duration: 0.5 }}
-                className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-purple-200"
-              >
-                <div className="text-4xl mb-3 animate-bounce" style={{ animationDelay: '0.5s' }}>🏆</div>
-                <div className="font-bold text-purple-900 text-lg mb-2">Build Epic Streaks</div>
-                <div className="text-purple-700">Chain victories and climb the leaderboard</div>
-              </motion.div>
-            </div>
-
-            {/* How to Play - Quick Guide */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-              className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 shadow-lg border border-gray-200"
+          {/* Control Buttons */}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+            <button
+              onClick={handleBackToStart}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm"
             >
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                ⚡ How to Play
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div className="flex flex-col items-center">
-                  <div className="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mb-3">1</div>
-                  <div className="font-semibold text-gray-900 mb-2">Get a Word</div>
-                  <div className="text-gray-600 text-sm">Receive a challenging vocabulary word</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="bg-purple-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mb-3">2</div>
-                  <div className="font-semibold text-gray-900 mb-2">Test Your Luck</div>
-                  <div className="text-gray-600 text-sm">Guess which post has more word matches</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mb-3">3</div>
-                  <div className="font-semibold text-gray-900 mb-2">Win & Learn</div>
-                  <div className="text-gray-600 text-sm">Build streaks and expand your vocabulary</div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </main>
+              🏠 Home
+            </button>
 
-      {/* Footer */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-600">
-              Built with ❤️ using Devvit • Powered by Reddit
-            </div>
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm"
+            >
+              📊 {showStats ? 'Hide' : 'Show'}
+            </button>
 
-            <div className="flex gap-4 text-sm text-gray-600">
+            {gameState.currentRound?.winner && (
               <button
-                className="hover:text-blue-600 transition-colors"
-                onClick={() => navigateTo('https://developers.reddit.com/docs')}
+                onClick={handleNewRound}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm"
               >
-                Devvit Docs
+                🎯 New
               </button>
-              <span className="text-gray-300">|</span>
+            )}
+
+            {(gameState.score > 0 || gameState.roundsPlayed > 0) && (
               <button
-                className="hover:text-blue-600 transition-colors"
-                onClick={() => navigateTo('https://www.reddit.com/r/Devvit')}
+                onClick={handleResetGame}
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm"
               >
-                r/Devvit
+                🔄 Reset
               </button>
-              <span className="text-gray-300">|</span>
-              <button
-                className="hover:text-blue-600 transition-colors"
-                onClick={() => navigateTo('https://discord.com/invite/R7yu2wh9Qz')}
-              >
-                Discord
-              </button>
-            </div>
+            )}
           </div>
         </div>
-      </footer>
+
+        {/* Stats Display Below Header */}
+        {showStats && (
+          <div className="mb-8 flex justify-center animate-in slide-in-from-top duration-300">
+            <StatsDisplay
+              score={gameState.score}
+              streak={gameState.streak}
+              roundsPlayed={gameState.roundsPlayed}
+              totalCorrect={gameState.totalCorrect}
+              totalWrong={gameState.totalWrong}
+              className="max-w-md"
+            />
+          </div>
+        )}
+
+        {/* Game Board */}
+        <GameBoard
+          round={gameState.currentRound}
+          onCardClick={handleCardClick}
+          onNewRound={handleNewRound}
+          loading={gameState.isLoading}
+        />
+
+
+        {/* Bottom Spacing for Mobile */}
+        <div className="h-8 md:h-4"></div>
+
+        {/* Reset Confirmation Modal */}
+        {showResetConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm mx-auto shadow-2xl">
+              <div className="text-center">
+                <div className="text-4xl mb-4">🔄</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Stats?</h3>
+                <p className="text-gray-600 mb-6">
+                  This will reset your score, streak, and all game statistics. This cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={cancelReset}
+                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmReset}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

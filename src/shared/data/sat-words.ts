@@ -506,12 +506,6 @@ export const SAT_WORDS: SATWord[] = [
     lemmas: ['gratuitous', 'gratuitously', 'gratuitousness'],
   },
   {
-    word: 'gregarious',
-    definition: 'fond of the company of others; sociable',
-    synonyms: ['sociable', 'outgoing', 'friendly', 'companionable', 'extroverted'],
-    lemmas: ['gregarious', 'gregariousness', 'gregariously'],
-  },
-  {
     word: 'gullible',
     definition: 'easily persuaded to believe something; credulous',
     synonyms: ['naive', 'trusting', 'credulous', 'innocent', 'unsuspecting'],
@@ -1503,4 +1497,9 @@ export function getRandomSATWord(): SATWord {
 // Function to get all search terms for a word (including synonyms and lemmas)
 export function getAllSearchTerms(word: SATWord): string[] {
   return [word.word, ...word.synonyms, ...word.lemmas];
+}
+
+// Function to get SAT word data by word string (for lookup)
+export function getSATWordByString(wordString: string): SATWord | null {
+  return SAT_WORDS.find(word => word.word.toLowerCase() === wordString.toLowerCase()) || null;
 }

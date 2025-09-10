@@ -1,49 +1,29 @@
-import { GameState, GameRound, RedditPost, GameStats } from './game';
+import type { GameRound, GameState } from './game';
 
-export type InitResponse = {
-  type: 'init';
-  postId: string;
-  gameState: GameState;
-  username: string;
+// API request/response types
+export type StartRoundRequest = {
+  // No parameters needed for now
 };
 
-export type NewRoundResponse = {
-  type: 'new_round';
-  round: GameRound;
+export type StartRoundResponse = {
+  success: boolean;
+  round?: GameRound;
+  error?: string;
 };
 
-export type RevealCardsResponse = {
-  type: 'reveal_cards';
-  round: GameRound;
-  winner: 'player' | 'cpu' | 'tie';
-  stats: GameStats;
+export type RevealCardRequest = {
+  roundId: string;
+  cardId: string;
 };
 
-export type SearchRedditResponse = {
-  type: 'search_reddit';
-  posts: RedditPost[];
+export type RevealCardResponse = {
+  success: boolean;
+  gameState?: GameState;
+  error?: string;
 };
 
-export type GameStatsResponse = {
-  type: 'game_stats';
-  stats: GameState['stats'];
-};
-
-export type ResetGameResponse = {
-  type: 'reset';
-  message: string;
-  gameState: GameState;
-};
-
-// Legacy counter types (keeping for compatibility)
-export type IncrementResponse = {
-  type: 'increment';
-  postId: string;
-  count: number;
-};
-
-export type DecrementResponse = {
-  type: 'decrement';
-  postId: string;
-  count: number;
+export type GameStateResponse = {
+  success: boolean;
+  gameState?: GameState;
+  error?: string;
 };
